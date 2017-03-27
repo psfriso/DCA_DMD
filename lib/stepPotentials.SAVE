@@ -1,0 +1,68 @@
+
+MODULE stepPotentials
+    use Constants
+    
+    type stepPot
+        real r
+        real e
+    end type stepPot
+
+    type stepPotInt
+        integer nstep, tipInt
+        type (stepPot) step(MAXSTEPS)
+        logical active
+        real dmin
+    end type stepPotInt
+
+    type stepPotIntDef
+        character(len = 4) :: id
+        integer nstep, stepTip
+        real r(MAXSTEPS), e(MAXSTEPS)
+    end type stepPotIntDef
+    
+    type intDataTop
+        integer :: id, tipInt
+        real :: rref, eref
+    end type intDataTop    
+    
+    type stepPotIntDefList
+        integer npots
+        type(stepPotIntDef) list(MAXSPOTDEF)
+    end type stepPotIntDefList
+    
+  
+    
+CONTAINS
+    !===============================================================================
+    function getStepPotFromDEF(GOENERGY,sigmago,rrefINI ,tipINT) result (st)
+        !
+       ! type(stepPotIntDef), intent(IN) :: stDef
+        REAL, INTENT(IN):: GOENERGY,sigmago
+        INTEGER, INTENT(IN) :: tipINT
+        type(stepPotInt) :: st
+        real*8, intent(IN) :: rrefINI
+        !
+        
+        st=stepPotInt(0,0,(/stepPot(0.00000,0.00000),stepPot(0.00000,0.00000),&
+        stepPot(0.00000,0.00000),stepPot(0.00000,0.00000)/),.FALSE.,0.0000)
+        
+!       
+         st % nstep = 2
+        IF (rrefINI < 15.0 ) THEN
+          ! Pozo con un solo minimo
+           
+            st % step(1) = stepPot( rrefINI * DBLE((1-sigmago)), -GOENERGY * FACTE)
+            st % step(2) = stepPot( rrefINI * DBLE((1+sigmago)), +GOENERGY * FACTE)
+        ELSE
+            st % step(1) = stepPot( 4.0 , +GOENERGY * FACTE)
+            st % step(2) = stepPot( 5.5 , -GOENERGY * FACTE)
+        END IF
+        st % tipInt = tipINT
+        st % active = .FALSE.
+        st % dmin = 0.
+!        call writeStPotDef(6,stDef)
+!        call writeStPot(6,st)
+    end function getStepPotFromDef
+  !===============================================================================
+
+    END MODULE stepPotentials
